@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Wallet, RotateCcw } from "lucide-react";
+import { Receipt, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import BillInput from "./BillInput";
 import TipSelector from "./TipSelector";
@@ -28,8 +28,6 @@ export default function TipCalculator() {
     tip: false,
     people: false,
   });
-
-  // --- Validation ---
 
   const billError = useMemo(() => {
     if (!touched.bill || bill === "") return "";
@@ -58,8 +56,6 @@ export default function TipCalculator() {
     return "";
   }, [people, touched.people]);
 
-  // --- Live Calculation ---
-
   const result = useMemo((): CalculationResult | null => {
     const b = parseFloat(bill);
     const t = parseFloat(tipPercent);
@@ -67,12 +63,11 @@ export default function TipCalculator() {
 
     if (!bill || isNaN(b) || b <= 0) return null;
     if (tipPercent === "" || isNaN(t) || t < 0 || t > 100) return null;
-    if (!people || isNaN(p) || p < 1 || !Number.isInteger(parseFloat(people))) return null;
+    if (!people || isNaN(p) || p < 1 || !Number.isInteger(parseFloat(people)))
+      return null;
 
     return calculate(b, t, p);
   }, [bill, tipPercent, people]);
-
-  // --- Handlers ---
 
   const handleBillChange = useCallback((value: string) => {
     setBill(value);
@@ -108,37 +103,41 @@ export default function TipCalculator() {
   return (
     <div>
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -12 }}
+      <motion.header
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: 0.3 }}
         className="mb-8 text-center"
       >
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-teal-500/20 flex items-center justify-center">
-            <Wallet className="w-5 h-5 text-teal-400" />
+        <div className="flex items-center justify-center gap-2.5 mb-2">
+          <div className="w-9 h-9 rounded-xl bg-teal-400/15 flex items-center justify-center">
+            <Receipt className="w-4 h-4 text-teal-400" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight text-white">
             Tip Calculator
           </h1>
         </div>
-        <p className="text-slate-500 text-sm">Split the bill, keep the peace</p>
-      </motion.div>
+        <p className="text-sm text-slate-500">Split the bill, keep the peace</p>
+      </motion.header>
 
-      {/* Calculator — inputs on left on desktop, results stacked on mobile */}
-      <div className="flex flex-col-reverse lg:grid lg:grid-cols-2 lg:items-start gap-5">
-        {/* Inputs panel */}
+      {/* Two-panel grid: results first on mobile so they stay above keyboard */}
+      <div className="flex flex-col-reverse gap-4 lg:grid lg:grid-cols-[1fr_1fr] lg:gap-5 lg:items-start">
+
+        {/* Inputs — single unified card */}
         <motion.div
-          initial={{ opacity: 0, x: -16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, delay: 0.1, ease: "easeOut" }}
-          className="space-y-4"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.08 }}
+          className="bg-[#0c1828] rounded-2xl border border-white/[0.06] overflow-hidden"
         >
           <BillInput
             value={bill}
             onChange={handleBillChange}
             error={billError}
           />
+
+          <div className="h-px bg-white/[0.04] mx-5" />
+
           <TipSelector
             tipPercent={tipPercent}
             activePreset={activePreset}
@@ -147,33 +146,40 @@ export default function TipCalculator() {
             onCustomChange={handleCustomTip}
             error={tipError}
           />
+
+          <div className="h-px bg-white/[0.04] mx-5" />
+
           <PeopleInput
             value={people}
             onChange={handlePeopleChange}
             error={peopleError}
           />
 
-          {/* Reset button */}
-          <motion.button
-            type="button"
-            onClick={handleReset}
-            whileHover={{ scale: 1.015 }}
-            whileTap={{ scale: 0.97 }}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-slate-800/60 hover:bg-slate-700/60 text-slate-400 hover:text-slate-200 transition-colors border border-white/5 text-sm font-semibold"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Reset
-          </motion.button>
+          <div className="h-px bg-white/[0.04]" />
+
+          {/* Reset */}
+          <div className="p-4">
+            <motion.button
+              type="button"
+              onClick={handleReset}
+              whileTap={{ scale: 0.98 }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-white/[0.06] text-slate-500 hover:text-slate-200 hover:border-white/[0.12] hover:bg-white/[0.02] transition-all text-sm font-medium"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              Reset
+            </motion.button>
+          </div>
         </motion.div>
 
-        {/* Results panel */}
+        {/* Results */}
         <motion.div
-          initial={{ opacity: 0, x: 16 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, delay: 0.15, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.12 }}
         >
           <ResultPanel result={result} />
         </motion.div>
+
       </div>
     </div>
   );
