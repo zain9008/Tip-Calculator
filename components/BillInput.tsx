@@ -1,6 +1,6 @@
 "use client";
 
-import { DollarSign } from "lucide-react";
+import { DollarSign, AlertCircle } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 interface Props {
@@ -11,24 +11,26 @@ interface Props {
 
 export default function BillInput({ value, onChange, error }: Props) {
   return (
-    <div className="bg-[#0c1828] rounded-2xl p-5 border border-white/5">
+    <div className="p-5">
       <label
         htmlFor="bill"
-        className="block text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3"
+        className="block text-[11px] font-medium uppercase tracking-widest text-slate-500 mb-2.5"
       >
         Bill Amount
       </label>
 
       <div
-        className={`flex items-center gap-3 bg-[#111f32] rounded-xl px-4 py-3.5 border transition-all duration-200 ${
+        className={`flex items-center gap-3 bg-[#0a1421] rounded-xl px-4 py-3.5 border transition-all duration-200 ${
           error
-            ? "border-red-500/60 shadow-[0_0_0_1px_rgba(239,68,68,0.2)]"
-            : "border-white/5 focus-within:border-teal-500/50 focus-within:shadow-[0_0_0_1px_rgba(20,184,166,0.15)]"
+            ? "border-red-500/40 bg-red-950/10"
+            : "border-white/[0.06] focus-within:border-teal-500/40 focus-within:bg-[#0b1928]"
         }`}
       >
-        <div className="w-8 h-8 rounded-lg bg-teal-500/15 flex items-center justify-center flex-shrink-0">
-          <DollarSign className="w-4 h-4 text-teal-400" strokeWidth={2.5} />
-        </div>
+        <DollarSign
+          className={`w-4 h-4 flex-shrink-0 transition-colors ${
+            error ? "text-red-400/60" : "text-teal-400/70"
+          }`}
+        />
         <input
           id="bill"
           type="number"
@@ -40,7 +42,7 @@ export default function BillInput({ value, onChange, error }: Props) {
           onChange={(e) => onChange(e.target.value)}
           aria-describedby={error ? "bill-error" : undefined}
           aria-invalid={!!error}
-          className="flex-1 bg-transparent text-white text-xl font-semibold placeholder:text-slate-700 outline-none w-full min-w-0"
+          className="flex-1 bg-transparent text-lg font-semibold text-white placeholder:text-slate-700 outline-none min-w-0 tabular-nums"
         />
       </div>
 
@@ -50,11 +52,12 @@ export default function BillInput({ value, onChange, error }: Props) {
             id="bill-error"
             role="alert"
             initial={{ opacity: 0, height: 0, marginTop: 0 }}
-            animate={{ opacity: 1, height: "auto", marginTop: 8 }}
+            animate={{ opacity: 1, height: "auto", marginTop: 6 }}
             exit={{ opacity: 0, height: 0, marginTop: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            className="text-red-400 text-xs font-medium overflow-hidden"
+            transition={{ duration: 0.15 }}
+            className="flex items-center gap-1.5 text-red-400 text-xs font-medium overflow-hidden"
           >
+            <AlertCircle className="w-3 h-3 flex-shrink-0" />
             {error}
           </motion.p>
         )}
