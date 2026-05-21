@@ -4,86 +4,90 @@
 
 ## 1. How to Run
 
-**Requirements:** Node.js 18 or later. Check with `node --version`.
+You need Node.js 18 or above. Check with `node --version`.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). That's it — no database, no backend, just a local dev server compiling the React code.
+Then open http://localhost:3000 in your browser.
 
-To build for production: `npm run build && npm start`
+For production build:
+
+```bash
+npm run build
+npm start
+```
+
+No database, no backend. Just a local dev server that compiles React code. If port 3000 is busy it will switch to 3001 automatically.
 
 ---
 
 ## 2. Stack and Design Choices
 
-**Stack: Next.js 14 (App Router) + TypeScript + Tailwind CSS**
+**Stack: Next.js 14 with TypeScript and Tailwind CSS**
 
-Next.js is what I know best for React projects. For a single-page app this is slight overkill compared to plain Vite, but it gives hot reload out of the box, easy Vercel deployment, and the App Router makes server/client boundaries explicit — which matters for framer-motion (client-only). TypeScript catches input handling bugs early (e.g., confusing `string` bill values with `number` ones). Tailwind keeps styling fast without a separate CSS file per component.
+I went with Next.js because it is what I am most comfortable with for React projects. It gives you hot reload, TypeScript out of the box, and easy deployment to Vercel. For a single-page app it is a bit heavy, but it removes all setup headaches and lets you focus on the actual UI. Framer Motion handles animations, Lucide gives clean icons, and Sonner shows a small toast on reset.
 
-**Visual Decision 1: "Per Person" card uses amber/gold and a larger font (text-3xl vs text-2xl)**
+**Decision 1: Per person amount is bigger and gold colored compared to tip and total**
 
-The results panel has three numbers: tip amount, grand total, and per person. In a group dinner context, the only number anyone actually cares about is "what do I owe?" Making it bigger and gold means your eyes go there first without needing a label to tell you it's important. The other two cards use neutral white because they're supporting information. This affects the ResultPanel component — specifically the third card's color and size classes.
+All three result numbers (tip, total, per person) live in the same results card. But the one everyone actually cares about at a restaurant table is "what do I owe personally?" So I made the per person value use a larger font (text-4xl on desktop vs text-xl for the others) and amber/gold color with a subtle warm section at the bottom. The other two are just supporting info. Your eye goes straight to the gold number without reading any labels. This affects the ResultPanel component.
 
-**Visual Decision 2: On mobile (under 1024px), the results panel renders ABOVE the inputs**
+**Decision 2: On mobile the results panel shows above the inputs, not below**
 
-I used `flex-col-reverse` on the outer grid wrapper for mobile. The reason: when a soft keyboard opens on a phone, it covers roughly the bottom half of the screen. If results are below inputs (the natural document order), they get covered when the user is actively typing. Flipping the order on small screens means the numbers stay visible while you type — you can watch the total update without scrolling or dismissing the keyboard. This affects the layout in TipCalculator.tsx.
+I used `flex-col-reverse` in the grid wrapper. When you open a soft keyboard on a phone it covers roughly the bottom half of the screen. If results sit below the inputs, they disappear the moment you start typing. Flipping the order means the numbers stay visible while you are entering the bill or people count. You can watch the amount update live without scrolling or closing the keyboard. This affects the main calculator layout in TipCalculator.tsx.
 
 ---
 
 ## 3. Responsive and Accessibility
 
 **360px phone:**
-Single-column layout. Results appear first (above inputs) so they stay visible when the keyboard is open. All inputs are full-width. The +/- stepper buttons are 56px tall — large enough for a thumb tap. Font sizes reduce slightly but stay readable.
+Single column layout. Results card appears first at the top so it stays visible when the keyboard opens. All inputs are full width. The plus and minus stepper buttons are 48px tall which is big enough for a thumb tap. Font sizes stay readable.
 
 **1440px laptop:**
-Two-column grid (inputs left, results right). Everything is visible above the fold. The cards have generous padding. No horizontal scrolling.
+Two column grid side by side, inputs on left and results on right. Everything fits above the fold with comfortable spacing.
 
 **Accessibility handled:**
-- Every input has a `<label>` element linked by `htmlFor` / `id`. Screen readers announce the label when you focus the field.
-- Error messages use `role="alert"` so screen readers announce them immediately when they appear, without the user having to navigate to them.
-- `aria-invalid` and `aria-describedby` connect each input to its error message — screen readers say "Bill Amount, invalid, Enter a valid number" instead of just "text field."
-- Preset buttons use `aria-pressed` to communicate which tip is active.
-- Focus rings are not removed — every interactive element has a visible outline on keyboard focus.
-- The +/- people buttons have descriptive `aria-label` attributes ("Increase number of people").
+Every input has a proper label element connected with htmlFor and id. Error messages use `role="alert"` so screen readers announce them as soon as they appear, without the user needing to navigate to them. `aria-invalid` and `aria-describedby` link each input to its error so a screen reader says something like "Bill Amount, invalid, Bill must be greater than zero." Preset tip buttons use `aria-pressed` to show which one is selected. All interactive elements keep their default focus outline so keyboard users can see where they are.
 
 **Knowingly skipped:**
-`aria-live` on the result panel. If I added `aria-live="polite"`, a screen reader would announce the updated total after every single keystroke while typing the bill amount. For a $42.50 bill you'd hear: "zero point zero zero... four point two five... forty two point five zero..." on every character. That's genuinely worse than not announcing. Screen reader users can tab to the results section after finishing their input and the values will be read normally.
+aria-live on the results panel. If I added that, a screen reader would read out the updated total after every single keystroke while typing. For a bill of 42.50 you would hear the number changing on every character typed. That would be very annoying. Screen reader users can just tab to the results after entering their values and read them normally. Not ideal but better than the alternative.
 
 ---
 
 ## 4. AI Usage
 
-**Tool used: Claude Code (Anthropic's CLI assistant)**
+**Tool: Claude Code (Anthropic)**
 
-I gave it the full assessment spec and asked it to plan and build a Next.js tip calculator using Framer Motion, Lucide icons, Sonner for toasts, and a dark navy design that didn't look like a generic AI output.
+The full app was built using Claude Code. Here is how the workflow went:
 
-**What it gave me:** A complete implementation including all components, the calculation logic, and the layout structure.
+1. Gave it the assessment spec and asked it to read and fully understand the requirements before doing anything.
+2. Asked it to make a detailed plan first, covering the component structure, state management, validation rules, rounding policy, and the commit sequence.
+3. Reviewed the plan, then asked it to start building step by step with a commit after each piece.
+4. After the initial version was done, reviewed the UI and gave feedback on what to change.
+5. It then redesigned: changed from separate floating cards for each input to one unified card with dividers, fixed the per-person card color (it was using a greenish background that clashed with the navy theme), added a math breakdown under the per-person amount, and made the page background slightly less flat by adding a teal radial gradient.
 
-**What I specifically changed:**
+**Specific thing I changed from AI output:**
 
-Claude's initial `ResultPanel` showed all three result cards with identical visual weight — same font size (text-2xl), same text color (white), same card style. I changed the "Per Person" card to use `text-3xl`, `text-amber-400` for the value, and an amber border with a subtle green-tinted background. The original equal-weight layout treats the total and per-person amount as equally important — but in practice, everyone standing at a restaurant only needs one number. Making it visually dominant removes the need to parse three cards to find the answer.
-
-I also changed the mobile layout order. Claude's initial layout had inputs on top, results below (standard top-to-bottom reading order). I switched to `flex-col-reverse` so results appear first on small screens, keeping them visible when the keyboard opens.
+Claude initially made the ResultPanel with three separate cards, each floating independently with the same card style. The per-person card was using a dark green-tinted background color (#0e1a0f) which looked off against the rest of the navy theme. I told it to redo the result panel as one unified card, with the per-person section separated by an amber border at the bottom and using a consistent dark navy background. I also asked for a small breakdown line showing "total divided by N people" below the big per-person number, which was not in the original output.
 
 ---
 
 ## 5. Honest Gap
 
-The custom tip input and preset button interaction is not as polished as it should be.
+The interaction between the preset tip buttons and the custom tip input is not quite right.
 
-Currently: if you've selected 15% using the preset button, and you accidentally click into the custom tip field (maybe to see if it's editable), the preset highlight disappears immediately — even though you haven't typed anything. You've lost your 15% selection without meaning to.
+Right now if you click the 15% preset and then accidentally click into the custom input box, the preset highlight disappears immediately even if you did not type anything. You lose your selection without meaning to.
 
-The fix: only deactivate the active preset when the custom input contains a valid number. On blur, if the custom field is empty, restore the previously active preset. This would require tracking a `previousPreset` ref and adding `onBlur` logic to the custom input. I had a version of this but the edge cases (what if they type, clear, and click back to a preset?) got messy, so I cut it to keep the interaction simple and predictable rather than subtly broken.
+The proper fix would be: only deactivate the preset when the custom field actually has a valid number in it. On blur, if the custom field is still empty, restore whatever preset was active before. This needs a small ref to remember the previous preset and some onBlur logic on the custom input. I started working on it but the edge cases got messy, for example what happens if user types something, clears it, then clicks back to a preset. Cut it to keep the current behavior simple and predictable rather than getting it half right.
 
 ---
 
 ## Rounding Policy
 
-Per-person amounts use **round up to the nearest cent**: `Math.ceil(amount * 100) / 100`
+Per-person amounts use round up to nearest cent: `Math.ceil(amount * 100) / 100`
 
-Example: $100 bill, 15% tip = $115 total. Split 3 ways = $38.333... Per person = $38.34 (not $38.33).
+Example: 100 dollar bill with 15% tip = 115 dollar total. Split 3 ways = 38.333... Per person becomes 38.34.
 
-Why round up instead of round to nearest? At a restaurant, the group needs to cover the exact bill. Rounding to nearest means $38.33 x 3 = $114.99 — one cent short. The waiter gets $114.99 on a $115 bill. Rounding up means $38.34 x 3 = $115.02 — the group pays two cents extra total, which stays as a slightly larger tip. The overpay is at most $0.01 per person, which is acceptable. The underpay is not.
+Why round up instead of round to nearest? If you round to nearest, 38.33 times 3 = 114.99. The group is one cent short of the actual bill. In a restaurant that means someone is underpaying by a cent. Rounding up means 38.34 times 3 = 115.02, so the group pays two cents extra total. That two cents becomes a tiny bit of extra tip which is fine. The shortfall is not fine.
