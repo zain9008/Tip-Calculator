@@ -16,6 +16,9 @@ const config: Config = {
           700: "#162840",
         },
       },
+      fontFamily: {
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+      },
     },
   },
   plugins: [],
