@@ -110,9 +110,7 @@ export default function TipCalculator() {
         className="mb-8 text-center"
       >
         <div className="flex items-center justify-center gap-2.5 mb-2">
-          <div className="w-9 h-9 rounded-xl bg-teal-400/15 flex items-center justify-center">
-            <Receipt className="w-4 h-4 text-teal-400" />
-          </div>
+          <Receipt className="w-5 h-5 text-teal-400" />
           <h1 className="text-2xl font-bold tracking-tight text-white">
             Tip Calculator
           </h1>
